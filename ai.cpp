@@ -165,7 +165,7 @@ int find_energy(const Map*map,const Status* status){
 
 		if(map->objects[i].type==BOSS){
 	if(map->objects[i].type==BOSS&&status->objects[0].radius<0.82*map->objects[i].radius&&(Distance(status->objects[0].pos,map->objects[i].pos)<=2500)){
-		Move(status->objects[0].id,speed_std(Displacement(center,status->objects[0].pos)));return 1000;
+		Move(status->objects[0].id,speed_std(Displacement(map->objects[i].pos,status->objects[0].pos)));return 1000;
 	}
 		if(map->objects[i].type==BOSS&&status->objects[0].radius<0.82*map->objects[i].radius&&(Distance(status->objects[0].pos,map->objects[i].pos)>2500)){
 			continue;
@@ -175,15 +175,15 @@ int find_energy(const Map*map,const Status* status){
 				if(map->objects[i].type==BOSS&&map->objects[i].radius<=1450&&status->objects[0].radius<1.2*map->objects[i].radius){
 					boss_duel=true;
 					move_to_boss=true;
-					Move(status->objects[0].id,speed_std(Displacement(center,status->objects[0].pos)));return 404;
+					Move(status->objects[0].id,speed_std(Displacement(map->objects[i].pos,status->objects[0].pos)));return 404;
 				}
 				if(map->objects[i].type==BOSS&&map->objects[i].radius<=1450&&status->objects[0].radius>=1.2*map->objects[i].radius){
-					Move(status->objects[0].id,speed_std(Displacement(status->objects[0].pos,center))); return 233; 
+					Move(status->objects[0].id,speed_std(Displacement(status->objects[0].pos,map->objects[i].pos))); return 233; 
 				}
 	
 		if(map->objects[i].type==BOSS&&status->objects[0].health>5400&&(boss_duel==false||status->objects[0].radius>=1.2*map->objects[i].radius)){
 			if(move_to_boss==true){
-			Move(status->objects[0].id,speed_std(Displacement(status->objects[0].pos,center)));move_to_boss=false;return 101; 
+			Move(status->objects[0].id,speed_std(Displacement(status->objects[0].pos,map->objects[i].pos)));move_to_boss=false;return 101; 
 			}
 			if(status->objects[0].skill_level[0]>0&&Distance(status->objects[0].pos,map->objects[i].pos)-status->objects[0].radius-map->objects[i].radius<=kLongAttackRange[status->objects[0].skill_level[0]]&&status->objects[0].skill_cd[0]==0&&map->objects[i].radius>1375)
 		{ 
@@ -203,7 +203,7 @@ ShortAttack(status->objects[0].id);return 11;
 				}
 			}
 		}
-				Move(status->objects[0].id,speed_std(Displacement(status->objects[0].pos,center))); return 101; 
+				Move(status->objects[0].id,speed_std(Displacement(status->objects[0].pos,map->objects[i].pos))); return 101; 
 		}
 
 
