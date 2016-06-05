@@ -35,9 +35,12 @@ bool hard_fight=false;
 bool skillupgrade(const Status *status);
 
 double rad=1;
-
+double fuck[4][8]={0};
+	int fucknum[4][8]={0};
+	double fuckvalue[4][8][8]={0};
+	Position fuckyou[4][8][8]={0};
 //全局估值参量
-double ENERGY_value=1,ADVANCED_ENERGY_value=10;
+double ENERGY_value=1,ADVANCED_ENERGY_value=3;
 //寻路状态
 struct fight_and_resource{
 	int k;
@@ -113,22 +116,22 @@ bool edge::operator ==(edge& k){
 }
 edge edge_judge(Position vec1,int self_rad){
 	edge temp={0,0,0,0,0,0};
-	if(vec1.x<=0.5*self_rad){
+	if(vec1.x<=1.01*self_rad){
 		temp.a=1;
 	}
-	if(vec1.y<=0.5*self_rad){
+	if(vec1.y<=1.01*self_rad){
 		temp.b=1;
 	}
-	if(vec1.z<=0.5*self_rad){
+	if(vec1.z<=1.01*self_rad){
 		temp.c=1;
 	}
-	if(vec1.x>=kMapSize-0.5*self_rad){
+	if(vec1.x>=kMapSize-1.01*self_rad){
 		temp.d=1;		
 	}
-	if(vec1.y>=kMapSize-0.5*self_rad){
+	if(vec1.y>=kMapSize-1.01*self_rad){
 		temp.e=1;
 	}
-	if(vec1.z>=kMapSize-0.5*self_rad){
+	if(vec1.z>=kMapSize-1.01*self_rad){
 		temp.f=1;
 	}
 	return temp;
@@ -139,7 +142,7 @@ inline int add_edge(edge&c){
 
 
 bool devour_in_route(Position source,Position destiny,Position devour,double radius){
-	if(Distance(source,devour)>Distance(source,destiny)&&PointLineDistance(devour,source,destiny)<=1.2*radius&&DotProduct(Displacement(source,devour),Displacement(source,destiny))>0){
+	if(Distance(source,devour)<Distance(source,destiny)&&PointLineDistance(devour,source,destiny)<=1.2*radius&&DotProduct(Displacement(source,devour),Displacement(source,destiny))>0){
 		return false;
 	}
 	else return true;
@@ -157,35 +160,6 @@ Position source_pos[20];
 Position ae_pos[20];
 
 
-//double energy_density(Position energy_pos[],int energy_num,Position src,Position des){
-//	double density=0;
-//	for(int i=0;i<energy_num;i++){
-//		density+=DotProduct(Displacement(src,des),Displacement(src,energy_pos[i]));
-//	}
-//	return density/10000;
-//}
-//double ad_energy_density(Position ae_pos[],int ad_energy_num,Position src,Position des){
-//	double density=0;
-//	for(int i=0;i<ad_energy_num;i++){
-//		density+=DotProduct(Displacement(src,des),Displacement(src,energy_pos[i]));
-//	}
-//	return density/10000;
-//}
-//
-//double value_evaluate(Position src,Position des,Position *energy_pos,int energy_num,Position *source_pos,int src_num){
-//		double edensity=1;
-//		double sdensity=1;
-//
-//	for(int i=0;i<energy_num;i++){
-//		edensity*=(1+100*ENERGY_value/Distance(des,*(energy_pos+i)));
-//	}
-//	for(int i=0;i<src_num;i++){
-//		sdensity*=(1+100*ADVANCED_ENERGY_value/Distance(des,*(source_pos+i))/3);
-//	}
-//	
-//		return edensity*sdensity;
-//}
-//Position energytarget;
 double t_atan(double x,double y){
 	if(x>=0&&y>=0){
 		return atan(y/x);
@@ -200,77 +174,8 @@ double t_atan(double x,double y){
 		return pi*2+atan(y/x);
 	}
 }
-Position hhhh(Position src,Position energy_pos[],int energy_num,Position ae_pos[],int ad_energy_num,Position devour_pos[],int devour_num){
-	double fuck[6][12]={0};
-	int fucknum[6][12]={0};
-	int fuckvalue[6][12][10]={0};
-	Position fuckyou[6][12][10]={0};
-	for(int i=0;i<energy_num;i++){
-		double r;
-		double fai;
-		double sita;
-		r=Distance(src,energy_pos[i]);
-		fai=acos((energy_pos[i].z-src.z)/r)/pi*180;
-		sita=t_atan(energy_pos[i].x-src.x,energy_pos[i].y-src.y)/pi*180;
-		fuck[int(fai/30)][int(sita/30)]+=ENERGY_value/r;
-		fuckyou[int(fai/30)][int(sita/30)][fucknum[int(fai/30)][int(sita/30)]]=energy_pos[i];
-		fuckvalue[int(fai/30)][int(sita/30)][fucknum[int(fai/30)][int(sita/30)]]=ENERGY_value;
-		fucknum[int(fai/30)][int(sita/30)]++;
-		
-	}
-	for(int i=0;i<ad_energy_num;i++){
-		double r;
-		double fai;
-		double sita;
-		r=Distance(src,ae_pos[i]);
-		fai=acos((ae_pos[i].z-src.z)/r)/pi*180;
-		sita=t_atan(ae_pos[i].x-src.x,ae_pos[i].y-src.y)/pi*180;
-		fuck[int(fai/30)][int(sita/30)]+=ADVANCED_ENERGY_value/r;
-		fuckyou[int(fai/30)][int(sita/30)][fucknum[int(fai/30)][int(sita/30)]]=ae_pos[i];
-		fuckvalue[int(fai/30)][int(sita/30)][fucknum[int(fai/30)][int(sita/30)]]=ADVANCED_ENERGY_value;
-		fucknum[int(fai/30)][int(sita/30)]++;
-	}
-		for(int i=0;i<devour_num;i++){
-		double r;
-		double fai;
-		double sita;
-		r=Distance(src,devour_pos[i]);
-		fai=acos((devour_pos[i].z-src.z)/r)/pi*180;
-		sita=t_atan(devour_pos[i].x-src.x,devour_pos[i].y-src.y)/pi*180;
-		fuck[int(fai/30)][int(sita/30)]/=(1+2000/r);
-		
-	}
-		int maxi=0;
-		int maxj=0;
-		int maxk=0;
-		double maxpt=0;
 
-	for(int i=0;i<6;i++){
-		for(int j=0;j<12;j++){
-			if(fuck[i][j]>maxpt){
-				maxpt=fuck[i][j];
-				maxi=i;
-				maxj=j;
-			}
-            cout<<fuck[i][j]<<"  ";
-	}
-		cout<<endl;
-	}
-	cout<<"最大分区："<<"("<<maxi<<","<<maxj<<")"<<endl;
-
-	double maxchoice=0;
-	cout<<"最大分区内物体数："<<fucknum[maxi][maxj]<<endl;
-	Position choice;
-	for(int m=0;m<fucknum[maxi][maxj];m++){
-		double temp=fuckvalue[maxi][maxj][m]/Distance(fuckyou[maxi][maxj][m],src);
-		if(temp>maxchoice){
-			maxchoice=temp;
-			choice=fuckyou[maxi][maxj][m];
-		}
-	}
-	return choice;
-}
-
+    
 
 
 int find_energy(const Map*map,const Status*status){
@@ -280,10 +185,10 @@ int find_energy(const Map*map,const Status*status){
 	temp.k=-1;
 	int final_choose=-1;
 
-	double mindis=1e+20;
-	int choice=-1;
-	int ad_choice=-1;
-	double ad_mindis=1e+20;
+	//double mindis=1e+20;
+	//int choice=-1;
+	//int ad_choice=-1;
+	//double ad_mindis=1e+20;
 
 	int energy_num=0;
 	int src_num=0;
@@ -313,7 +218,7 @@ int find_energy(const Map*map,const Status*status){
 		}
 	}
 
-	
+
 
 	for(int i=0;i<map->objects_number;i++){
 		if(map->objects[i].id==status->objects[0].id){
@@ -331,16 +236,16 @@ int find_energy(const Map*map,const Status*status){
 	}		
 		}
 
-				if(map->objects[i].type==BOSS&&map->objects[i].radius<=1450&&status->objects[0].radius<1.2*map->objects[i].radius){
+				if(map->objects[i].type==BOSS&&map->objects[i].radius<=1500&&status->objects[0].radius<1.2*map->objects[i].radius){
 					boss_duel=true;
 					move_to_boss=true;
 					Move(status->objects[0].id,speed_std(Displacement(map->objects[i].pos,status->objects[0].pos)));return 404;
 				}
-				if(map->objects[i].type==BOSS&&map->objects[i].radius<=1450&&status->objects[0].radius>=1.2*map->objects[i].radius){
+				if(map->objects[i].type==BOSS&&map->objects[i].radius<=1500&&status->objects[0].radius>=1.2*map->objects[i].radius){
 					Move(status->objects[0].id,speed_std(Displacement(status->objects[0].pos,map->objects[i].pos))); return 233; 
 				}
 	
-		if(map->objects[i].type==BOSS&&status->objects[0].health>5400&&(boss_duel==false||status->objects[0].radius>=1.2*map->objects[i].radius)){
+		if(map->objects[i].type==BOSS&&status->objects[0].health>5700&&(boss_duel==false||status->objects[0].radius>=1.2*map->objects[i].radius)){
 			if(move_to_boss==true){
 			Move(status->objects[0].id,speed_std(Displacement(status->objects[0].pos,map->objects[i].pos)));move_to_boss=false;return 101; 
 			}
@@ -372,39 +277,119 @@ if(map->objects[i].type==PLAYER&&map->objects[i].id!=status->objects[0].id){
 	rad=status->objects[0].radius/map->objects[i].radius;
 
 		if(status->objects[0].radius>=map->objects[i].radius){
-			if(status->objects[0].radius<=1.2*map->objects[i].radius&&status->objects[0].skill_level[1]==0){
-				continue;
+			if((status->objects[0].radius<=1.2*map->objects[i].radius&&status->objects[0].skill_level[1]<=2)||(status->objects[0].radius>1.2*map->objects[i].radius&&status->objects[0].skill_level[1]<=1)){
+				if((map->objects[i].short_attack_casting!=-1||map->objects[i].long_attack_casting!=-1)&&status->objects[0].skill_level[SHIELD]!=0&&status->objects[0].skill_cd[SHIELD]==0)
+					{
+						Shield(status->objects[0].id);
+						return 48;
+				}
+				if(status->objects[0].skill_level[1]>0&&Distance(status->objects[0].pos,map->objects[i].pos)-status->objects[0].radius-map->objects[i].radius<kShortAttackRange[status->objects[0].skill_level[1]])
+			if(status->objects[0].skill_cd[1]==0&&status->objects[0].short_attack_casting==-1)
+			{
+			      ShortAttack(status->objects[0].id);return 21;
+		     }
+			if(status->objects[0].skill_level[1]==0&&Distance(status->objects[0].pos,map->objects[i].pos)-status->objects[0].radius-map->objects[i].radius<2000)
+			{
+				Move(status->objects[0].id,speed_std(Displacement(map->objects[i].pos,status->objects[0].pos))); return 20;
 			}
-		if(Distance(status->objects[0].pos,map->objects[i].pos)-status->objects[0].radius-map->objects[i].radius>kShortAttackRange[status->objects[0].skill_level[1]]){
+				else continue;
+			}
+		
+			
+			if(status->objects[0].radius>=1.2*map->objects[i].radius){
+				if(Distance(status->objects[0].pos,map->objects[i].pos)-status->objects[0].radius-map->objects[i].radius>300+5*kDashSpeed[status->objects[0].skill_level[DASH]]+kShortAttackRange[status->objects[0].skill_level[1]]){
 		if(status->objects[0].skill_level[0]>0&&Distance(status->objects[0].pos,map->objects[i].pos)-status->objects[0].radius-map->objects[i].radius<=kLongAttackRange[status->objects[0].skill_level[0]]&&status->objects[0].skill_cd[0]==0)
 		{ LongAttack(status->objects[0].id,map->objects[i].id);return 21;}
 		Move(status->objects[0].id,speed_std(Displacement(status->objects[0].pos,map->objects[i].pos))); return 20;
 		}
 
-		if(Distance(status->objects[0].pos,map->objects[i].pos)-status->objects[0].radius-map->objects[i].radius<kShortAttackRange[status->objects[0].skill_level[1]])
-		{if(status->objects[0].skill_cd[1]==0){
+		if(Distance(status->objects[0].pos,map->objects[i].pos)-status->objects[0].radius-map->objects[i].radius<300+5*kDashSpeed[status->objects[0].skill_level[DASH]]+kShortAttackRange[status->objects[0].skill_level[1]])
+		{
+		if(status->objects[0].skill_level[DASH]>0&&status->objects[0].skill_cd[DASH]==0){
+			Dash(status->objects[0].id);
+			return DASH;
+		}
+		if(status->objects[0].skill_level[SHIELD]>0&&status->objects[0].skill_cd[SHIELD]==0)
+		{
+			Shield(status->objects[0].id);
+			return SHIELD;
+		}
+		if(status->objects[0].skill_cd[1]==0&&status->objects[0].short_attack_casting==-1){
 			ShortAttack(status->objects[0].id);return 21;
 		}
 		if(status->objects[0].skill_level[0]>0&&status->objects[0].skill_cd[0]==0)
 		{ LongAttack(status->objects[0].id,map->objects[i].id);return 21;}
 
+		
+		Move(status->objects[0].id,speed_std(Displacement(status->objects[0].pos,map->objects[i].pos)));return 20;
+
+        }
+			}
+		
+		
+		if(status->objects[0].radius<1.2*map->objects[i].radius){
+			if(Distance(status->objects[0].pos,map->objects[i].pos)-status->objects[0].radius-map->objects[i].radius>500+5*kDashSpeed[status->objects[0].skill_level[DASH]]+kShortAttackRange[status->objects[0].skill_level[1]]){
+		if(status->objects[0].skill_level[0]>0&&Distance(status->objects[0].pos,map->objects[i].pos)-status->objects[0].radius-map->objects[i].radius<=kLongAttackRange[status->objects[0].skill_level[0]]&&status->objects[0].skill_cd[0]==0)
+		{ LongAttack(status->objects[0].id,map->objects[i].id);return 21;}
+		Move(status->objects[0].id,speed_std(Displacement(status->objects[0].pos,map->objects[i].pos))); return 20;
+		}
+
+		if(Distance(status->objects[0].pos,map->objects[i].pos)-status->objects[0].radius-map->objects[i].radius<500+5*kDashSpeed[status->objects[0].skill_level[DASH]]+kShortAttackRange[status->objects[0].skill_level[1]])
+		{
 		if(status->objects[0].skill_level[DASH]>0&&status->objects[0].skill_cd[DASH]==0){
 			Dash(status->objects[0].id);
 			return DASH;
 		}
+		if(status->objects[0].skill_level[SHIELD]>0&&status->objects[0].skill_cd[SHIELD]==0)
+		{
+			Shield(status->objects[0].id);
+			return SHIELD;
+		}
+		if(status->objects[0].skill_cd[1]==0&&status->objects[0].short_attack_casting==-1){
+			ShortAttack(status->objects[0].id);return 21;
+		}
+		if(status->objects[0].skill_level[0]>0&&status->objects[0].skill_cd[0]==0)
+		{ LongAttack(status->objects[0].id,map->objects[i].id);return 21;}
+
+		
 		Move(status->objects[0].id,speed_std(Displacement(status->objects[0].pos,map->objects[i].pos)));return 20;
 
         }
+		}
 }
+		if(status->objects[0].radius<map->objects[i].radius)
+		{
+			if(status->objects[0].radius>=0.95*map->objects[i].radius&&Distance(status->objects[0].pos,map->objects[i].pos)-status->objects[0].radius-map->objects[i].radius<900+5*kDashSpeed[status->objects[0].skill_level[DASH]]+kShortAttackRange[status->objects[0].skill_level[1]]&&status->objects[0].skill_level[1]>=2)
+			{
+				if(status->objects[0].skill_level[DASH]>0&&status->objects[0].skill_cd[DASH]==0){
+			Dash(status->objects[0].id);
+			return DASH;
+		}
+		if(status->objects[0].skill_level[SHIELD]>0&&status->objects[0].skill_cd[SHIELD]==0)
+		{
+			Shield(status->objects[0].id);
+			return SHIELD;
+		}
+		if(status->objects[0].skill_cd[1]==0&&status->objects[0].short_attack_casting==-1){
+			ShortAttack(status->objects[0].id);return 21;
+		}
+		
+		Move(status->objects[0].id,speed_std(Displacement(status->objects[0].pos,map->objects[i].pos)));return 20;
 
+        }
 
-		if(status->objects[0].radius<map->objects[i].radius&&Distance(status->objects[0].pos,map->objects[i].pos)<4300){
-
-		if(status->objects[0].skill_level[1]>0&&Distance(status->objects[0].pos,map->objects[i].pos)-status->objects[0].radius-map->objects[i].radius<kShortAttackRange[status->objects[0].skill_level[1]]){
-			if(status->objects[0].skill_cd[1]==0){
-				ShortAttack(status->objects[0].id);return 21;
-			}
-			}
+			else if(Distance(status->objects[0].pos,map->objects[i].pos)-status->objects[0].radius-map->objects[i].radius<=2300){
+				if((map->objects[i].short_attack_casting!=-1||map->objects[i].long_attack_casting!=-1)&&status->objects[0].skill_level[SHIELD]!=0&&status->objects[0].skill_cd[SHIELD]==0)
+					{
+						Shield(status->objects[0].id);
+						return 0;
+				}
+		if(status->objects[0].skill_level[1]>0&&Distance(status->objects[0].pos,map->objects[i].pos)-status->objects[0].radius-map->objects[i].radius<kShortAttackRange[status->objects[0].skill_level[1]])
+			if(status->objects[0].skill_cd[1]==0&&status->objects[0].short_attack_casting==-1)
+			{
+			      ShortAttack(status->objects[0].id);return 21;
+		     }
+			
 		if(status->objects[0].skill_level[0]>0&&Distance(status->objects[0].pos,map->objects[i].pos)-status->objects[0].radius-map->objects[i].radius<=kLongAttackRange[status->objects[0].skill_level[0]]&&status->objects[0].skill_cd[0]==0)
 		{ LongAttack(status->objects[0].id,map->objects[i].id);return 21;}
 		if(status->objects[0].skill_level[DASH]>0&&status->objects[0].skill_cd[DASH]==0){
@@ -417,7 +402,7 @@ if(map->objects[i].type==PLAYER&&map->objects[i].id!=status->objects[0].id){
 					Move(status->objects[0].id,speed_std(Displacement(status->objects[0].pos,map->objects[j].pos))); 
 					return 666;
 				}
-				if((map->objects[j].type==ENERGY)&&Vector_cos(Displacement(map->objects[i].pos,status->objects[0].pos),Displacement(status->objects[0].pos,map->objects[i].pos))>0.5&&(edge_judge(map->objects[i].pos,status->objects[0].radius)==compare)){
+				if((map->objects[j].type==ENERGY)&&Vector_cos(Displacement(map->objects[i].pos,status->objects[0].pos),Displacement(status->objects[0].pos,map->objects[i].pos))>0&&(edge_judge(map->objects[i].pos,status->objects[0].radius)==compare)){
 					Move(status->objects[0].id,speed_std(Displacement(status->objects[0].pos,map->objects[j].pos))); 
 					return 444;
 				}
@@ -425,92 +410,39 @@ if(map->objects[i].type==PLAYER&&map->objects[i].id!=status->objects[0].id){
 					continue;
 				}
 			}
-		//}
-	//	Position escape;
-	//	escape=speed_std(CrossProduct(Displacement(map->objects[i].pos,status->objects[0].pos),Displacement(center,status->objects[0].pos)));
-	//Move(status->objects[0].id,escape); 
-		Move(status->objects[0].id,speed_std(Displacement(map->objects[i].pos,status->objects[0].pos))); 
-		return 30;
-}
-	if(status->objects[0].radius<map->objects[i].radius&&Distance(status->objects[0].pos,map->objects[i].pos)-status->objects[0].radius-map->objects[i].radius>=2300){
+	
 		continue;
-	}
-		}
-
-
-
-/*		if((map->objects[i].type==ADVANCED_ENERGY)&&(edge_judge(map->objects[i].pos,status->objects[0].radius)==compare)){
-			bool safe_to_reach=true;
-			for(int p=0;p<devour_num;p++){
-				if(devour_in_route(status->objects[0].pos,map->objects[i].pos,devour_pos[p],status->objects[0].radius)==false){
-					safe_to_reach=false;
-					break;
+}
+	
+		if(status->objects[0].radius<map->objects[i].radius&&Distance(status->objects[0].pos,map->objects[i].pos)-status->objects[0].radius-map->objects[i].radius>=2300)
+		{
+		
+		if((map->objects[i].short_attack_casting!=-1||map->objects[i].long_attack_casting!=-1)&&status->objects[0].skill_level[SHIELD]!=0&&status->objects[0].skill_cd[SHIELD]==0)
+					{
+						Shield(status->objects[0].id);
+						return 0;
 				}
-			}
-			if(safe_to_reach==false){
-				continue;
-			}
-			//double temp_density=ad_energy_density(ae_pos,ad_energy_num,status->objects[0].pos,map->objects[i].pos);(1.001*abs(temp_density)+temp_density)
-			double temp=(Distance(map->objects[i].pos,status->objects[0].pos)-0.99*status->objects[0].radius)/value_evaluate(status->objects[0].pos,map->objects[i].pos,energy_pos,energy_num,source_pos,src_num)/ADVANCED_ENERGY_value;
-			//(Distance(map->objects[i].pos,status->objects[0].pos)-0.99*status->objects[0].radius)/ADVANCED_ENERGY_value;
-				
-			if(temp<ad_mindis){
-				//ad_mindis=(Distance(map->objects[i].pos,status->objects[0].pos)-0.99*status->objects[0].radius)/ADVANCED_ENERGY_value;
-				ad_mindis=temp;
-				ad_choice=i;
-			}
+		if(status->objects[0].skill_level[1]>0&&Distance(status->objects[0].pos,map->objects[i].pos)-status->objects[0].radius-map->objects[i].radius<kShortAttackRange[status->objects[0].skill_level[1]])
+			if(status->objects[0].skill_cd[1]==0&&status->objects[0].short_attack_casting==-1)
+			{
+			      ShortAttack(status->objects[0].id);return 21;
+		     }
+			else continue;
 		}
-		if(map->objects[i].type==ENERGY&&(edge_judge(map->objects[i].pos,status->objects[0].radius)==compare)){
+	}
+		}
 
-			bool safe_to_reach=true;
-			for(int p=0;p<devour_num;p++){
-				if(devour_in_route(status->objects[0].pos,map->objects[i].pos,devour_pos[p],status->objects[0].radius)==false){
-					safe_to_reach=false;
-					break;
-				}
-			}
-			if(safe_to_reach==false){
-				continue;
-			}
-			double temp2=(Distance(map->objects[i].pos,status->objects[0].pos)-0.99*status->objects[0].radius)/ENERGY_value;
-				//(Distance(map->objects[i].pos,status->objects[0].pos)-0.99*status->objects[0].radius)/value_evaluate(status->objects[0].pos,map->objects[i].pos,energy_pos,energy_num,source_pos,src_num)/ENERGY_value;
-//double temp_density=energy_density(energy_pos,energy_num,status->objects[0].pos,map->objects[i].pos);/(1.001*abs(temp_density)+temp_density)
-			if(temp2<mindis){
-				
-				//mindis=(Distance(map->objects[i].pos,status->objects[0].pos)-0.99*status->objects[0].radius)/ENERGY_value;
-				mindis=temp2;
-				choice=i;
-			}
-		}
-	}
-	if(ad_choice!=-1){
-		if(mindis<ad_mindis){
-			//energytarget=map->objects[choice].pos;
-Move(status->objects[0].id,speed_std(Displacement(status->objects[0].pos,map->objects[choice].pos)));
-return 500;
-		}
-		if(mindis>=ad_mindis){
-			//energytarget=map->objects[ad_choice].pos;
-		Move(status->objects[0].id,speed_std(Displacement(status->objects[0].pos,map->objects[ad_choice].pos)));
-		choice=ad_choice;
-		return 501;
-	}
-	}
-	else{
 
-		if(choice!=-1){
-				//energytarget=map->objects[choice].pos;
-			Move(status->objects[0].id,speed_std(Displacement(status->objects[0].pos,map->objects[choice].pos)));
-			return 502;
-		}
-		else{
-
-		}*/
 	}
-	double fuck[6][12]={0};
-	int fucknum[6][12]={0};
-	int fuckvalue[6][12][10]={0};
-	Position fuckyou[6][12][10]={0};
+
+	for(int i=0;i<4;i++){
+		for(int j=0;j<8;j++){
+			fuck[i][j]=0;
+			fucknum[i][j]=0;
+		}
+	}
+	
+
 	for(int i=0;i<energy_num;i++){
 		if((edge_judge(energy_pos[i],status->objects[0].radius)==compare)==false){
 			continue;
@@ -518,15 +450,33 @@ return 500;
 		double r;
 		double fai;
 		double sita;
-		r=Distance(status->objects[0].pos,energy_pos[i]);
+		
+
+		r=Distance(status->objects[0].pos,energy_pos[i])-status->objects[0].radius;
 		fai=acos((energy_pos[i].z-status->objects[0].pos.z)/r)/pi*180;
 		sita=t_atan(energy_pos[i].x-status->objects[0].pos.x,energy_pos[i].y-status->objects[0].pos.y)/pi*180;
-		fuck[int(fai/30)][int(sita/30)]+=ENERGY_value/(r*r);
-		fuckyou[int(fai/30)][int(sita/30)][fucknum[int(fai/30)][int(sita/30)]]=energy_pos[i];
-		fuckvalue[int(fai/30)][int(sita/30)][fucknum[int(fai/30)][int(sita/30)]]=ENERGY_value;
-		fucknum[int(fai/30)][int(sita/30)]++;
+		
+		int x2=fai/45;
+		int y2=sita/45;
+		if(x2>=4){
+			x2=3;
+		}
+		if(y2>=8){
+			y2=7;
+		}
+		if(x2<0){
+			x2=0;
+		}
+		if(y2<0){
+			x2=0;
+		}
+		fuck[x2][y2]+=ENERGY_value/(r*r);
+		fuckyou[x2][y2][fucknum[x2][y2]]=energy_pos[i];
+		fuckvalue[x2][y2][fucknum[x2][y2]]=ENERGY_value;
+		fucknum[x2][y2]++;
 		
 	}
+	
 	for(int i=0;i<ad_energy_num;i++){
 		if((edge_judge(ae_pos[i],status->objects[0].radius)==compare)==false){
 			continue;
@@ -534,69 +484,148 @@ return 500;
 		double r;
 		double fai;
 		double sita;
-		r=Distance(status->objects[0].pos,ae_pos[i]);
+
+		r=Distance(status->objects[0].pos,ae_pos[i])-status->objects[0].radius;
 		fai=acos((ae_pos[i].z-status->objects[0].pos.z)/r)/pi*180;
 		sita=t_atan(ae_pos[i].x-status->objects[0].pos.x,ae_pos[i].y-status->objects[0].pos.y)/pi*180;
-		fuck[int(fai/30)][int(sita/30)]+=ADVANCED_ENERGY_value/(r*r);
-		fuckyou[int(fai/30)][int(sita/30)][fucknum[int(fai/30)][int(sita/30)]]=ae_pos[i];
-		fuckvalue[int(fai/30)][int(sita/30)][fucknum[int(fai/30)][int(sita/30)]]=ADVANCED_ENERGY_value;
-		fucknum[int(fai/30)][int(sita/30)]++;
+
+		
+		int x3=fai/45;
+		int y3=sita/45;
+		if(x3>=4){
+			x3=3;
+		}
+		if(y3>=8){
+			y3=7;
+		}
+		if(x3<0){
+			x3=0;
+		}
+		if(y3<0){
+			x3=0;
+		}
+		fuck[x3][y3]+=1000*ADVANCED_ENERGY_value/(r*r);
+		fuckyou[x3][y3][fucknum[x3][y3]]=ae_pos[i];
+		fuckvalue[x3][y3][fucknum[x3][y3]]=ADVANCED_ENERGY_value;
+		fucknum[x3][y3]++;
 	}
+	
 		for(int i=0;i<devour_num;i++){
 		double r;
 		double fai;
 		double sita;
-		r=Distance(status->objects[0].pos,devour_pos[i]);
+		r=Distance(status->objects[0].pos,devour_pos[i])-status->objects[0].radius;
 		fai=acos((devour_pos[i].z-status->objects[0].pos.z)/r)/pi*180;
 		sita=t_atan(devour_pos[i].x-status->objects[0].pos.x,devour_pos[i].y-status->objects[0].pos.y)/pi*180;
-		int xxx=fai/30;
-		int yyy=sita/30;
-		  fuck[xxx][yyy]/=(1+2000/r);
-		//fuck[xxx-1][yyy]/=(1+2000/r);
-		//fuck[xxx+1][yyy]/=(1+2000/r);
-		//  fuck[xxx][yyy-1]/=(1+2000/r);
-		//fuck[xxx-1][yyy-1]/=(1+2000/r);
-		//fuck[xxx+1][yyy-1]/=(1+2000/r);
-		//  fuck[xxx][yyy+1]/=(1+2000/r);
-		//fuck[xxx-1][yyy+1]/=(1+2000/r);
-		//fuck[xxx+1][yyy+1]/=(1+2000/r);
-	}
-		int maxi=0;
-		int maxj=0;
-		int maxk=0;
-		double maxpt=0;
+		int xxx=fai/45;
+		int yyy=sita/45;
+		if(xxx>=4){
+			xxx=3;
+		}
+		if(yyy>=8){
+			yyy=7;
+		}
+				if(xxx<0){
+			xxx=0;
+		}
+		if(yyy<0){
+			yyy=0;
+		}
+		 fuck[xxx][yyy]/=(1+2000/r);
+		 if(xxx==0&&yyy==0){
+			 fuck[xxx+1][yyy]/=(1+2000/r);
+			 fuck[xxx][yyy+1]/=(1+2000/r);
+			 fuck[xxx+1][yyy+1]/=(1+2000/r);
 
-	for(int i=0;i<6;i++){
-		for(int j=0;j<12;j++){
-			if(fuck[i][j]>maxpt){
-				maxpt=fuck[i][j];
-				maxi=i;
-				maxj=j;
+		 }
+		 if(xxx==3&&yyy==0){
+			 fuck[xxx-1][yyy]/=(1+2000/r);
+			 fuck[xxx][yyy+1]/=(1+2000/r);
+			 fuck[xxx-1][yyy+1]/=(1+2000/r);
+
+		 }
+		 if(xxx==0&&yyy==7){
+			 fuck[xxx+1][yyy]/=(1+2000/r);
+			 fuck[xxx][yyy-1]/=(1+2000/r);
+			 fuck[xxx+1][yyy-1]/=(1+2000/r);
+
+		 }
+		 		 if(xxx==3&&yyy==7){
+			 fuck[xxx-1][yyy]/=(1+2000/r);
+			 fuck[xxx][yyy-1]/=(1+2000/r);
+			 fuck[xxx-1][yyy-1]/=(1+2000/r);
+
+		 }
+			if(xxx==3&&yyy<7&&yyy>0){
+			 fuck[xxx-1][yyy]/=(1+2000/r);
+			 fuck[xxx][yyy-1]/=(1+2000/r);
+			 fuck[xxx-1][yyy-1]/=(1+2000/r);
+			  fuck[xxx][yyy+1]/=(1+2000/r);
+			 fuck[xxx-1][yyy+1]/=(1+2000/r);
+
+		 }
+			if(xxx==0&&yyy<7&&yyy>0){
+			 fuck[xxx+1][yyy]/=(1+2000/r);
+			 fuck[xxx][yyy-1]/=(1+2000/r);
+			 fuck[xxx+1][yyy-1]/=(1+2000/r);
+			  fuck[xxx][yyy+1]/=(1+2000/r);
+			 fuck[xxx+1][yyy+1]/=(1+2000/r);
+		 }
+			if(yyy==0&&xxx<3&&xxx>0){
+			 fuck[xxx][yyy+1]/=(1+2000/r);
+			 fuck[xxx+1][yyy]/=(1+2000/r);
+			 fuck[xxx+1][yyy+1]/=(1+2000/r);
+			  fuck[xxx-1][yyy]/=(1+2000/r);
+			 fuck[xxx-1][yyy+1]/=(1+2000/r);
+		 }
+			if(yyy==7&&xxx<3&&xxx>0){
+			 fuck[xxx][yyy-1]/=(1+2000/r);
+			 fuck[xxx+1][yyy]/=(1+2000/r);
+			 fuck[xxx+1][yyy-1]/=(1+2000/r);
+			  fuck[xxx-1][yyy]/=(1+2000/r);
+			 fuck[xxx-1][yyy-1]/=(1+2000/r);
+		 }
+			if(xxx<3&&xxx>0&&yyy<7&&yyy>0){
+				 fuck[xxx][yyy-1]/=(1+2000/r);
+			 fuck[xxx+1][yyy]/=(1+2000/r);
+			 fuck[xxx+1][yyy-1]/=(1+2000/r);
+			  fuck[xxx-1][yyy]/=(1+2000/r);
+			 fuck[xxx-1][yyy-1]/=(1+2000/r);
+			  fuck[xxx][yyy+1]/=(1+2000/r);
+			 fuck[xxx+1][yyy+1]/=(1+2000/r);
+			 fuck[xxx-1][yyy+1]/=(1+2000/r);
 			}
-            cout<<fuck[i][j]<<"  ";
 	}
-		cout<<endl;
-	}
-	cout<<"最大分区："<<"("<<maxi<<","<<maxj<<")"<<endl;
-	double r2=5000;
-		double fai2=(maxi*30+15)*pi/180;
-		double sita2=(maxj*30+15)*pi/180;
-		Position target_speed;
-		target_speed.z=r2*cos(fai2);
-		target_speed.x=r2*sin(fai2)*cos(sita2);
-		target_speed.y=r2*sin(fai2)*sin(sita2);
-	//double maxchoice=0;
-	//cout<<"最大分区内物体数："<<fucknum[maxi][maxj]<<endl;
-	//Position choice3;
-	//for(int m=0;m<fucknum[maxi][maxj];m++){
-	//	double temp=fuckvalue[maxi][maxj][m]/Distance(fuckyou[maxi][maxj][m],status->objects[0].pos);
-	//	if(temp>maxchoice){
-	//		maxchoice=temp;
-	//		choice3=fuckyou[maxi][maxj][m];
-	//	}
-	//}
-	//Position temp3=hhhh(status->objects[0].pos,energy_pos,energy_num,ae_pos,ad_energy_num,devour_pos,devour_num);
-	Move(status->objects[0].id,speed_std(target_speed));
+		
+		double maxmax=0;
+		Position dest={100,100,100};
+		for(int i=0;i<4;i++){
+			for(int j=0;j<8;j++){
+				for(int k=0;k<fucknum[i][j];k++){
+					double mindev=5000;
+					for(int m=0;m<devour_num;m++){
+if(Distance(devour_pos[m],status->objects[0].pos)<status->objects[0].radius*1.5){
+							fuckvalue[i][j][k]*=(8-pow((1+Vector_cos(Displacement(status->objects[0].pos,fuckyou[i][j][k]),Displacement(status->objects[0].pos,devour_pos[m]))),5));
+						}
+			
+					}
+			
+					double temp=fuck[i][j]*fuckvalue[i][j][k]/(Distance(status->objects[0].pos,fuckyou[i][j][k])-status->objects[0].radius);
+					if(temp>maxmax){
+						maxmax=temp;
+						dest=fuckyou[i][j][k];
+
+					}
+				}
+			}
+		}
+		cout<<"**********************************"<<endl;
+		cout<<dest.x<<" "<<dest.y<<" "<<dest.z<<endl;
+		cout<<"**********************************"<<endl;
+
+
+
+	Move(status->objects[0].id,speed_std(Displacement(status->objects[0].pos,dest)));
 	return 500;
 }
 fight_and_resource status_now;
@@ -611,340 +640,157 @@ bool start=false;
 bool destination_reached=false;
 bool Gotodes=false;
 int skill_tree=0;int tree=0;
+
+
 bool skillupgrade(const Status *status){
 	bool flag=false;
-	return false;
-		if(skill_tree==0&&status->objects[0].ability>=1){
+	int add=0;
+	status=GetStatus();
+	for(int i=0;i<=5;i++){
+		add+=status->objects[0].skill_level[i];
+	}
+	int sklv=add;
+	    if(sklv==0&&status->objects[0].ability>=1){
 		UpgradeSkill(status->objects[0].id,SHORT_ATTACK);
-		skill_tree++;ADVANCED_ENERGY_value=10;
+		 ADVANCED_ENERGY_value=3;
 		return true;
 		
 	}
-		if(skill_tree==1&&status->objects[0].ability>=2){
+		if(sklv==1&&status->objects[0].ability>=2){
 		UpgradeSkill(status->objects[0].id,HEALTH_UP);
-		skill_tree++;ADVANCED_ENERGY_value=10;
+		 ADVANCED_ENERGY_value=3;
 		return true;
 		
 	}
-	if(skill_tree==2&&status->objects[0].ability>=2){
-		UpgradeSkill(status->objects[0].id,SHORT_ATTACK);
-		skill_tree++;ADVANCED_ENERGY_value=10;
+	if(sklv==2&&status->objects[0].ability>=2){
+		UpgradeSkill(status->objects[0].id,HEALTH_UP);
+		 ADVANCED_ENERGY_value=3;
 		return true;
 	}
-	if(skill_tree==3&&rad>=0.97&&rad<=1.03){
-		tree=0;
-	}
-		if(skill_tree==3&&rad<0.97){
-		tree=1;
-	}
-		if(skill_tree==3&&rad>1.03){
-		tree=2;
-	}
-		if(tree==2){
-	if(skill_tree==3&&status->objects[0].ability>=4){
-		UpgradeSkill(status->objects[0].id,SHORT_ATTACK);
-		skill_tree++;ADVANCED_ENERGY_value=9;
+
+	if(sklv==3&&status->objects[0].ability>=4){
+		UpgradeSkill(status->objects[0].id,HEALTH_UP);
+		 ADVANCED_ENERGY_value=3;
 		return true;
 
 	}
-    if(skill_tree==4&&status->objects[0].ability>=4){
-		UpgradeSkill(status->objects[0].id,LONG_ATTACK);
-		skill_tree++;ADVANCED_ENERGY_value=9;
+    if(sklv==4&&status->objects[0].ability>=2){
+		UpgradeSkill(status->objects[0].id,SHORT_ATTACK);
+		 ADVANCED_ENERGY_value=3;
 		return true;
 	}
-		if(skill_tree==5&&status->objects[0].ability>=2){
-			UpgradeSkill(status->objects[0].id,LONG_ATTACK);
-		skill_tree++;ADVANCED_ENERGY_value=9;
+		if(sklv==5&&status->objects[0].ability>=4){
+			UpgradeSkill(status->objects[0].id,SHORT_ATTACK);
+		 ADVANCED_ENERGY_value=2.5;
 		return true;
 	}
 	
-		if(skill_tree==6&&status->objects[0].ability>=4){
-		UpgradeSkill(status->objects[0].id,LONG_ATTACK);
-		skill_tree++;ADVANCED_ENERGY_value=7;
+		if(sklv==6&&status->objects[0].ability>=4){
+			UpgradeSkill(status->objects[0].id,SHIELD);
+		 ADVANCED_ENERGY_value=2.5;
 		return true;
 		
 	}
-		if(skill_tree==7&&status->objects[0].ability>=2){
-		UpgradeSkill(status->objects[0].id,HEALTH_UP);
-		skill_tree++;ADVANCED_ENERGY_value=6;
+		if(sklv==7&&status->objects[0].ability>=2){
+		UpgradeSkill(status->objects[0].id,SHIELD);
+		 ADVANCED_ENERGY_value=2.5;
 		return true;
 		
 	}
-		if(skill_tree==8&&status->objects[0].ability>=4){
-		UpgradeSkill(status->objects[0].id,HEALTH_UP);
-		skill_tree++;ADVANCED_ENERGY_value=5;
+		if(sklv==8&&status->objects[0].ability>=4){
+		UpgradeSkill(status->objects[0].id,SHIELD);
+		 ADVANCED_ENERGY_value=2.5;
 		return true;
 	}
 
-		if(skill_tree==9&&status->objects[0].ability>=8){
-		UpgradeSkill(status->objects[0].id,DASH);
-		skill_tree++;ADVANCED_ENERGY_value=5;
+		if(sklv==9&&status->objects[0].ability>=8){
+		UpgradeSkill(status->objects[0].id,HEALTH_UP);
+		 ADVANCED_ENERGY_value=2.5;
 		return true;
 	}		
-	    if(skill_tree==10&&status->objects[0].ability>=2){
-		UpgradeSkill(status->objects[0].id,DASH);
-		skill_tree++;
-		
-		ADVANCED_ENERGY_value=4;
-		return true;
-	}
-	if(skill_tree==11&&status->objects[0].ability>=4){
-		UpgradeSkill(status->objects[0].id,DASH);
-		skill_tree++;ADVANCED_ENERGY_value=4;
-		return true;
-	}
-
-		if(skill_tree==12&&status->objects[0].ability>=8){
-			UpgradeSkill(status->objects[0].id,SHORT_ATTACK);
-		skill_tree++;ADVANCED_ENERGY_value=6;
-		return true;
-	}
-		if(skill_tree==13&&status->objects[0].ability>=8){
-			UpgradeSkill(status->objects[0].id,LONG_ATTACK);
-		skill_tree++;ADVANCED_ENERGY_value=5;
-		return true;
-	}
-		if(skill_tree==14&&status->objects[0].ability>=16){
-		UpgradeSkill(status->objects[0].id,SHORT_ATTACK);
-		skill_tree++;ADVANCED_ENERGY_value=4;
-		return true;
-	}
-		if(skill_tree==15&&status->objects[0].ability>=16){
-			UpgradeSkill(status->objects[0].id,LONG_ATTACK);
-		skill_tree++;ADVANCED_ENERGY_value=2.5;
-		return true;
-	}
-		if(skill_tree==16&&status->objects[0].ability>=8){
+	    if(sklv==10&&status->objects[0].ability>=16){
 		UpgradeSkill(status->objects[0].id,HEALTH_UP);
-		skill_tree++;ADVANCED_ENERGY_value=1.8;
-		return true;
-	}
-		if(skill_tree==17&&status->objects[0].ability>=8){
-		UpgradeSkill(status->objects[0].id,DASH);
-		skill_tree++;ADVANCED_ENERGY_value=1.6;
-		return true;
-	}
-		if(skill_tree==18&&status->objects[0].ability>=16){
-		UpgradeSkill(status->objects[0].id,DASH);
-		skill_tree++;ADVANCED_ENERGY_value=1.2;
-		return true;
-	}
-		if(skill_tree==19&&status->objects[0].ability>=16){
-		UpgradeSkill(status->objects[0].id,HEALTH_UP);
-		skill_tree++;ADVANCED_ENERGY_value=0.9;
-		return true;
-	}
-			if(skill_tree==20&&status->objects[0].ability>=16){
-		UpgradeSkill(status->objects[0].id,VISION_UP);
-		skill_tree++;ADVANCED_ENERGY_value=0.5;
-		return true;
-	}
-		}
-
-
-		if(tree==0){
-	if(skill_tree==3&&status->objects[0].ability>=4){
-		UpgradeSkill(status->objects[0].id,SHORT_ATTACK);
-		skill_tree++;ADVANCED_ENERGY_value=9;
-		return true;
-
-	}
-    if(skill_tree==4&&status->objects[0].ability>=2){
-		UpgradeSkill(status->objects[0].id,HEALTH_UP);
-		skill_tree++;ADVANCED_ENERGY_value=9;
-		return true;
-	}
-		if(skill_tree==5&&status->objects[0].ability>=4){
-			UpgradeSkill(status->objects[0].id,LONG_ATTACK);
-		skill_tree++;ADVANCED_ENERGY_value=9;
-		return true;
-	}
-	
-		if(skill_tree==6&&status->objects[0].ability>=2){
-		UpgradeSkill(status->objects[0].id,LONG_ATTACK);
-		skill_tree++;ADVANCED_ENERGY_value=9;
-		return true;
+		 
 		
-	}
-		if(skill_tree==7&&status->objects[0].ability>=4){
-		UpgradeSkill(status->objects[0].id,LONG_ATTACK);
-		skill_tree++;ADVANCED_ENERGY_value=8;
+		ADVANCED_ENERGY_value=2.5;
 		return true;
-		
 	}
-		if(skill_tree==8&&status->objects[0].ability>=8){
-		UpgradeSkill(status->objects[0].id,DASH);
-		skill_tree++;ADVANCED_ENERGY_value=4;
+	if(sklv==11&&status->objects[0].ability>=8){
+		UpgradeSkill(status->objects[0].id,SHIELD);
+		 ADVANCED_ENERGY_value=2.5;
 		return true;
 	}
 
-		if(skill_tree==9&&status->objects[0].ability>=2){
-		UpgradeSkill(status->objects[0].id,DASH);
-		skill_tree++;ADVANCED_ENERGY_value=6;
-		return true;
-	}		
-	    if(skill_tree==10&&status->objects[0].ability>=8){
-		UpgradeSkill(status->objects[0].id,SHORT_ATTACK);
-		skill_tree++;
-		
-		ADVANCED_ENERGY_value=3;
+		if(sklv==12&&status->objects[0].ability>=16){
+			UpgradeSkill(status->objects[0].id,SHIELD);
+		 ADVANCED_ENERGY_value=2.5;
 		return true;
 	}
-	if(skill_tree==11&&status->objects[0].ability>=4){
-		UpgradeSkill(status->objects[0].id,HEALTH_UP);
-		skill_tree++;ADVANCED_ENERGY_value=3;
-		return true;
-	}
-
-		if(skill_tree==12&&status->objects[0].ability>=4){
+		if(sklv==13&&status->objects[0].ability>=8){
 			UpgradeSkill(status->objects[0].id,DASH);
-		skill_tree++;ADVANCED_ENERGY_value=3;
+		 ADVANCED_ENERGY_value=2.5;
 		return true;
 	}
-		if(skill_tree==13&&status->objects[0].ability>=8){
-			UpgradeSkill(status->objects[0].id,LONG_ATTACK);
-		skill_tree++;ADVANCED_ENERGY_value=2.5;
+		if(sklv==14&&status->objects[0].ability>=2){
+		UpgradeSkill(status->objects[0].id,DASH);
+		 ADVANCED_ENERGY_value=2;
 		return true;
 	}
-		if(skill_tree==14&&status->objects[0].ability>=16){
+		if(sklv==15&&status->objects[0].ability>=4){
+			UpgradeSkill(status->objects[0].id,DASH);
+		 ADVANCED_ENERGY_value=2;
+		return true;
+	}
+		if(sklv==16&&status->objects[0].ability>=8){
 		UpgradeSkill(status->objects[0].id,SHORT_ATTACK);
-		skill_tree++;ADVANCED_ENERGY_value=2.5;
+		 ADVANCED_ENERGY_value=1.8;
 		return true;
 	}
-		if(skill_tree==15&&status->objects[0].ability>=16){
-		UpgradeSkill(status->objects[0].id,LONG_ATTACK);
-		skill_tree++;ADVANCED_ENERGY_value=1.5;
-		return true;
-	}
-		if(skill_tree==16&&status->objects[0].ability>=8){
+		if(sklv==17&&status->objects[0].ability>=8){
 		UpgradeSkill(status->objects[0].id,DASH);
-		skill_tree++;ADVANCED_ENERGY_value=1;
+		 ADVANCED_ENERGY_value=1.8;
 		return true;
 	}
-		if(skill_tree==17&&status->objects[0].ability>=8){
-		UpgradeSkill(status->objects[0].id,HEALTH_UP);
-		skill_tree++;ADVANCED_ENERGY_value=0.8;
-		return true;
-	}
-		if(skill_tree==18&&status->objects[0].ability>=16){
-		UpgradeSkill(status->objects[0].id,DASH);
-		skill_tree++;ADVANCED_ENERGY_value=0.7;
-		return true;
-	}
-		if(skill_tree==19&&status->objects[0].ability>=16){
-		UpgradeSkill(status->objects[0].id,HEALTH_UP);
-		skill_tree++;ADVANCED_ENERGY_value=0.7;
-		return true;
-	}
-			if(skill_tree==20&&status->objects[0].ability>=16){
-				UpgradeSkill(status->objects[0].id,VISION_UP);
-		skill_tree++;ADVANCED_ENERGY_value=0.4;
-		return true;
-	}
-		}
-
-
-		if(tree==1){
-	if(skill_tree==3&&status->objects[0].ability>=2){
-		UpgradeSkill(status->objects[0].id,HEALTH_UP);
-		skill_tree++;ADVANCED_ENERGY_value=8;
-		return true;
-
-	}
-    if(skill_tree==4&&status->objects[0].ability>=4){
+		if(sklv==18&&status->objects[0].ability>=16){
 		UpgradeSkill(status->objects[0].id,SHORT_ATTACK);
-		skill_tree++;ADVANCED_ENERGY_value=9;
+		 ADVANCED_ENERGY_value=1.6;
 		return true;
 	}
-		if(skill_tree==5&&status->objects[0].ability>=4){
-			UpgradeSkill(status->objects[0].id,HEALTH_UP);
-		skill_tree++;ADVANCED_ENERGY_value=9;
-		return true;
-	}
-	
-		if(skill_tree==6&&status->objects[0].ability>=4){
-			UpgradeSkill(status->objects[0].id,LONG_ATTACK);
-		skill_tree++;ADVANCED_ENERGY_value=8;
-		return true;
-		
-	}
-		if(skill_tree==7&&status->objects[0].ability>=2){
-		UpgradeSkill(status->objects[0].id,LONG_ATTACK);
-		skill_tree++;ADVANCED_ENERGY_value=8;
-		return true;
-		
-	}
-		if(skill_tree==8&&status->objects[0].ability>=4){
-		UpgradeSkill(status->objects[0].id,LONG_ATTACK);
-		skill_tree++;ADVANCED_ENERGY_value=8;
-		return true;
-	}
-
-		if(skill_tree==9&&status->objects[0].ability>=8){
-			UpgradeSkill(status->objects[0].id,SHORT_ATTACK);
-		skill_tree++;ADVANCED_ENERGY_value=9;
-		return true;
-	}		
-	    if(skill_tree==10&&status->objects[0].ability>=8){
-		UpgradeSkill(status->objects[0].id,LONG_ATTACK);
-		skill_tree++;
-		
-		ADVANCED_ENERGY_value=5;
-		return true;
-	}
-	if(skill_tree==11&&status->objects[0].ability>=8){
+		if(sklv==19&&status->objects[0].ability>=16){
 		UpgradeSkill(status->objects[0].id,DASH);
-		skill_tree++;ADVANCED_ENERGY_value=4;
+		 ADVANCED_ENERGY_value=1.8;
 		return true;
 	}
-
-		if(skill_tree==12&&status->objects[0].ability>=2){
-			UpgradeSkill(status->objects[0].id,DASH);
-		skill_tree++;ADVANCED_ENERGY_value=3;
-		return true;
-	}
-		if(skill_tree==13&&status->objects[0].ability>=4){
-			UpgradeSkill(status->objects[0].id,DASH);
-		skill_tree++;ADVANCED_ENERGY_value=5;
-		return true;
-	}
-		if(skill_tree==14&&status->objects[0].ability>=16){
+			if(sklv==20&&status->objects[0].ability>=16){
 		UpgradeSkill(status->objects[0].id,LONG_ATTACK);
-		skill_tree++;ADVANCED_ENERGY_value=5;
+		 ADVANCED_ENERGY_value=1.8;
 		return true;
 	}
-		if(skill_tree==15&&status->objects[0].ability>=8){
-			UpgradeSkill(status->objects[0].id,HEALTH_UP);
-		skill_tree++;ADVANCED_ENERGY_value=5;
+		if(sklv==21&&status->objects[0].ability>=2){
+		UpgradeSkill(status->objects[0].id,LONG_ATTACK);
+		 ADVANCED_ENERGY_value=1.8;
 		return true;
 	}
-		if(skill_tree==16&&status->objects[0].ability>=16){
-			UpgradeSkill(status->objects[0].id,SHORT_ATTACK);
-		skill_tree++;ADVANCED_ENERGY_value=2;
+		if(sklv==22&&status->objects[0].ability>=4){
+		UpgradeSkill(status->objects[0].id,LONG_ATTACK);
+		 ADVANCED_ENERGY_value=1.5;
 		return true;
 	}
-		if(skill_tree==17&&status->objects[0].ability>=8){
-		UpgradeSkill(status->objects[0].id,DASH);
-		skill_tree++;ADVANCED_ENERGY_value=1;
+		if(sklv==23&&status->objects[0].ability>=8){
+		UpgradeSkill(status->objects[0].id,LONG_ATTACK);
+		 ADVANCED_ENERGY_value=1.2;
 		return true;
 	}
-		if(skill_tree==18&&status->objects[0].ability>=16){
-			UpgradeSkill(status->objects[0].id,DASH);
-		skill_tree++;ADVANCED_ENERGY_value=0.5;
+				if(sklv==24&&status->objects[0].ability>=16){
+		UpgradeSkill(status->objects[0].id,LONG_ATTACK);
+		 ADVANCED_ENERGY_value=0.8;
 		return true;
-	}
-		if(skill_tree==19&&status->objects[0].ability>=16){
-		UpgradeSkill(status->objects[0].id,HEALTH_UP);
-		skill_tree++;ADVANCED_ENERGY_value=0.5;
-		return true;
-	}
-		}
-
-		
+	} 
 
 		return flag;
 }
 
+int skilltime=0;
 
 
 void AIMain() {
@@ -959,15 +805,20 @@ void AIMain() {
 		cout<<"开局启动"<<endl;
 		start=true;
 	}
+	
+		if(time_before-skilltime>10&&skillupgrade(_status)==true){
+			skilltime=TIME;
+		return ;
+	}	
 		if(_status->objects[0].skill_level[DASH]>=2&&_status->objects[0].skill_cd[DASH]==0){
 			Dash(_status->objects[0].id);
 			return ;
 		}
-	int fight_sta;
-	
-	if(skillupgrade(_status)==true){
-		return ;
-	}	
+		if(_status->objects[0].skill_level[SHIELD]>=3&&_status->objects[0].skill_cd[SHIELD]==0&&_status->objects[0].skill_level[HEALTH_UP]==5){
+			Shield(_status->objects[0].id);
+			return ;
+		}
+	//int fight_sta;
 	int i=find_energy(_map,_status);	
 	cout<<"之前回合:"<<time_before<<endl;
 	TIME=GetTime();
